@@ -1,6 +1,6 @@
-import dynamic from "next/dynamic"
-import dynamicIconImports from "lucide-react/dynamicIconImports"
 import { Circle } from "lucide-react"
+import type { LucideIcon } from "lucide-react"
+import { ICON_MAP } from "./icon-picker"
 
 interface CategoryIconProps {
   name: string
@@ -8,10 +8,6 @@ interface CategoryIconProps {
 }
 
 export function CategoryIcon({ name, className }: CategoryIconProps) {
-  const iconKey = name as keyof typeof dynamicIconImports
-  if (!dynamicIconImports[iconKey]) {
-    return <Circle className={className} />
-  }
-  const Icon = dynamic(dynamicIconImports[iconKey])
+  const Icon: LucideIcon = ICON_MAP[name] ?? Circle
   return <Icon className={className} />
 }
