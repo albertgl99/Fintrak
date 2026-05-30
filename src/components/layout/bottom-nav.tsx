@@ -1,0 +1,35 @@
+"use client"
+
+import Link from "next/link"
+import { usePathname } from "next/navigation"
+import { cn } from "@/lib/utils"
+import { bottomNavItems } from "./nav-items"
+
+export function BottomNav() {
+  const pathname = usePathname()
+
+  return (
+    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 border-t bg-background">
+      <div className="flex items-center justify-around h-16">
+        {bottomNavItems.map(({ href, label, icon: Icon }) => {
+          const isActive = pathname === href || pathname.startsWith(href + "/")
+          return (
+            <Link
+              key={href}
+              href={href}
+              className={cn(
+                "flex flex-col items-center gap-1 px-3 py-2 text-xs transition-colors",
+                isActive
+                  ? "text-foreground"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              <Icon className={cn("size-5", isActive && "fill-none stroke-2")} />
+              <span>{label}</span>
+            </Link>
+          )
+        })}
+      </div>
+    </nav>
+  )
+}
