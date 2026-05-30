@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useTransition } from "react"
+import React, { useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
 import {
   Dialog,
@@ -82,9 +82,14 @@ export function TransactionDialog({
       }
     : {}
 
+  const triggerEl = React.cloneElement(
+    trigger as React.ReactElement<React.HTMLAttributes<HTMLElement>>,
+    { onClick: () => setOpen(true) }
+  )
+
   return (
     <>
-      <span onClick={() => setOpen(true)} className="contents">{trigger}</span>
+      {triggerEl}
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>

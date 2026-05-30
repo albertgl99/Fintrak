@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useTransition } from "react"
+import React, { useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
 import {
   Dialog,
@@ -49,9 +49,14 @@ export function AccountDialog({ trigger, account }: AccountDialogProps) {
     ? { ...account, bankName: account.bankName ?? undefined }
     : { currency: "EUR", color: "#6366f1" }
 
+  const triggerEl = React.cloneElement(
+    trigger as React.ReactElement<React.HTMLAttributes<HTMLElement>>,
+    { onClick: () => setOpen(true) }
+  )
+
   return (
     <>
-      <span onClick={() => setOpen(true)} className="contents">{trigger}</span>
+      {triggerEl}
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>
           <DialogHeader>
