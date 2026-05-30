@@ -1,6 +1,6 @@
 "use client"
 
-import { useTransition } from "react"
+import { useEffect, useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
 import { format } from "date-fns"
 import { Pencil, Trash2 } from "lucide-react"
@@ -48,8 +48,11 @@ export function TransactionList({
   accounts,
   categories,
 }: TransactionListProps) {
+  const [mounted, setMounted] = useState(false)
   const [isPending, startTransition] = useTransition()
   const router = useRouter()
+  useEffect(() => setMounted(true), [])
+  if (!mounted) return null
 
   const handleDelete = (id: string) => {
     if (!confirm("Delete this transaction?")) return

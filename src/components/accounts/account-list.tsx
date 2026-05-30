@@ -1,6 +1,6 @@
 "use client"
 
-import { useTransition } from "react"
+import { useEffect, useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
 import { Pencil, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -15,7 +15,10 @@ interface Account {
 }
 
 export function AccountList({ accounts }: { accounts: Account[] }) {
+  const [mounted, setMounted] = useState(false)
   const [isPending, startTransition] = useTransition()
+  useEffect(() => setMounted(true), [])
+  if (!mounted) return null
   const router = useRouter()
 
   const handleDelete = (id: string) => {
