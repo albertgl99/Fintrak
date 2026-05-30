@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useTransition } from "react"
+import React, { useEffect, useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
 import {
   Dialog,
@@ -27,7 +27,10 @@ interface CategoryDialogProps {
 
 export function CategoryDialog({ trigger, category }: CategoryDialogProps) {
   const [open, setOpen] = useState(false)
+  const [mounted, setMounted] = useState(false)
   const [isPending, startTransition] = useTransition()
+
+  useEffect(() => setMounted(true), [])
   const router = useRouter()
 
   const onSubmit = async (data: CategoryInput) => {
@@ -54,18 +57,20 @@ export function CategoryDialog({ trigger, category }: CategoryDialogProps) {
   return (
     <>
       {triggerEl}
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{category ? "Edit category" : "New category"}</DialogTitle>
-          </DialogHeader>
-          <CategoryForm
-            defaultValues={category}
-            onSubmit={onSubmit}
-            isPending={isPending}
-          />
-        </DialogContent>
-      </Dialog>
+      {mounted && (
+        <Dialog open={open} onOpenChange={setOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>{category ? "Edit category" : "New category"}</DialogTitle>
+            </DialogHeader>
+            <CategoryForm
+              defaultValues={category}
+              onSubmit={onSubmit}
+              isPending={isPending}
+            />
+          </DialogContent>
+        </Dialog>
+      )}
     </>
   )
 }

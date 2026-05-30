@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useTransition } from "react"
+import React, { useEffect, useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
 import {
   Dialog,
@@ -26,8 +26,11 @@ interface AccountDialogProps {
 
 export function AccountDialog({ trigger, account }: AccountDialogProps) {
   const [open, setOpen] = useState(false)
+  const [mounted, setMounted] = useState(false)
   const [isPending, startTransition] = useTransition()
   const router = useRouter()
+
+  useEffect(() => setMounted(true), [])
 
   const onSubmit = async (data: AccountInput) => {
     startTransition(async () => {
@@ -57,18 +60,20 @@ export function AccountDialog({ trigger, account }: AccountDialogProps) {
   return (
     <>
       {triggerEl}
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{account ? "Edit account" : "New account"}</DialogTitle>
-          </DialogHeader>
-          <AccountForm
-            defaultValues={defaultValues}
-            onSubmit={onSubmit}
-            isPending={isPending}
-          />
-        </DialogContent>
-      </Dialog>
+      {mounted && (
+        <Dialog open={open} onOpenChange={setOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>{account ? "Edit account" : "New account"}</DialogTitle>
+            </DialogHeader>
+            <AccountForm
+              defaultValues={defaultValues}
+              onSubmit={onSubmit}
+              isPending={isPending}
+            />
+          </DialogContent>
+        </Dialog>
+      )}
     </>
   )
 }

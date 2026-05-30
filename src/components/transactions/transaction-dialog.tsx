@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useTransition } from "react"
+import React, { useEffect, useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
 import {
   Dialog,
@@ -49,8 +49,11 @@ export function TransactionDialog({
   transaction,
 }: TransactionDialogProps) {
   const [open, setOpen] = useState(false)
+  const [mounted, setMounted] = useState(false)
   const [isPending, startTransition] = useTransition()
   const router = useRouter()
+
+  useEffect(() => setMounted(true), [])
 
   const onSubmit = async (data: TransactionInput) => {
     startTransition(async () => {
@@ -90,22 +93,24 @@ export function TransactionDialog({
   return (
     <>
       {triggerEl}
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>
-              {transaction ? "Edit transaction" : "New transaction"}
-            </DialogTitle>
-          </DialogHeader>
-          <TransactionForm
-            accounts={accounts}
-            categories={categories}
-            defaultValues={defaultValues}
-            onSubmit={onSubmit}
-            isPending={isPending}
-          />
-        </DialogContent>
-      </Dialog>
+      {mounted && (
+        <Dialog open={open} onOpenChange={setOpen}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>
+                {transaction ? "Edit transaction" : "New transaction"}
+              </DialogTitle>
+            </DialogHeader>
+            <TransactionForm
+              accounts={accounts}
+              categories={categories}
+              defaultValues={defaultValues}
+              onSubmit={onSubmit}
+              isPending={isPending}
+            />
+          </DialogContent>
+        </Dialog>
+      )}
     </>
   )
 }
