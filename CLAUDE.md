@@ -2,6 +2,20 @@
 
 Personal finance dashboard — bank CSV import, transaction management, spending analytics by category.
 
+## Code navigation (Serena MCP — MANDATORY)
+
+**REQUIRED:** Always call `mcp__serena__initial_instructions` before starting any coding task.
+
+**NEVER use Read, Grep, Glob, or Bash for code navigation.** Serena is the only allowed tool for locating and inspecting code. Violations waste tokens and ignore explicit project rules.
+
+Use Serena for:
+- `find_symbol` / `get_symbols_overview` — locate and inspect symbols instead of Glob + Read
+- `find_referencing_symbols` — find usages instead of Grep
+- `replace_symbol_body` / `insert_after_symbol` — targeted edits instead of full-file rewrites
+- `search_for_pattern` — text search when semantic search isn't enough
+
+Only fall back to Read/Grep/Glob/Bash when Serena physically cannot answer (e.g. config files, raw text, shell commands).
+
 ## Stack
 
 - **Next.js 16.2.6** — App Router, Server Components, Route Handlers, Turbopack
@@ -112,7 +126,8 @@ shadcn `base-nova` style uses **Base UI** for its primitive components. All Base
 1. `button.tsx` and `input.tsx` rewritten to use native `<button>` and `<input>` — no Base UI dependency
 2. All Dialog components (`AccountDialog`, `CategoryDialog`, `TransactionDialog`) use `mounted` guard — Dialog tree only renders after `useEffect` fires (client-only)
 3. All List components (`AccountList`, `CategoryList`, `TransactionList`) use `mounted` guard — return `null` during SSR
-4. `select.tsx` and `dialog.tsx` still use Base UI — protected by mounted guards on their consumers
+4. `TransactionFilters` uses `mounted` guard — it renders Base UI `Select` directly (filter bar), so it needs the guard too
+5. `select.tsx` and `dialog.tsx` still use Base UI — protected by mounted guards on their consumers
 
 **Pattern for any new component using Base UI:**
 ```tsx
@@ -122,6 +137,8 @@ if (!mounted) return null  // or render a skeleton
 ```
 
 **Never use `ssr: false` with `next/dynamic` in a Server Component** — move it to a Client Component wrapper.
+
+**Do NOT add `transpilePackages: ["@base-ui/react"]` to `next.config.ts`.** The `mounted` guards are the *complete* fix for the SSR crash — they stop Base UI from rendering server-side, full stop. Transpiling Base UI is redundant and was observed to break its `'use client'` namespace re-exports (`export * as Select from …`) in the **client** bundle: `SelectPrimitive`/`DialogPrimitive` resolve to `undefined`, so the same `Element type is invalid … got: undefined` error reappears the moment a `Select`/`Dialog` renders on the client (after `mounted` flips, or on dialog open). SSR looks clean (build passes, guards return `null`), which makes it deceptive. Keep `next.config.ts` free of `transpilePackages` for Base UI.
 
 ## lucide-react v1
 
