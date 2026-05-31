@@ -30,6 +30,8 @@ Only fall back to Read/Grep/Glob/Bash when Serena physically cannot answer (e.g.
 - **Papa Parse** — CSV parsing (client-side)
 - **date-fns** — date utilities
 - **lucide-react v1** — icons (no `dynamicIconImports` in v1 — use static imports)
+- **@google/generative-ai** — Gemini API (wired up, key not set yet — categorization fallback)
+- **xlsx** — Excel file parsing (import wizard)
 
 ## Commands
 
@@ -63,7 +65,7 @@ src/
     layout/          # Sidebar, BottomNav, Header, nav-items.ts
     accounts/        # AccountDialog, AccountForm, AccountList
     categories/      # CategoryDialog, CategoryForm, CategoryList, CategoryIcon, IconPicker
-    transactions/    # TransactionDialog, TransactionForm, TransactionList, TransactionFilters
+    transactions/    # TransactionDialog, TransactionForm, TransactionList, TransactionFilters, TransactionPagination
     providers.tsx    # TanStack Query provider (added to root layout)
   lib/
     prisma.ts        # Prisma singleton + PrismaPg adapter (DATABASE_URL pooled)
@@ -176,14 +178,15 @@ DIRECT_URL            # direct (port 5432) — migrations only
 GEMINI_API_KEY        # v2 feature, empty for now
 ```
 
-## What's built (Phase 2 complete)
+## What's built (Phase 3 complete)
 
 - **Auth**: `/login`, `/register`, logout — Supabase + Server Actions + React Hook Form
 - **Proxy** (`src/proxy.ts`): auth redirects, `/` → `/dashboard` for authenticated users
 - **App layout**: Sidebar (desktop), BottomNav (mobile), TanStack Query Providers
 - **Accounts** (`/accounts`): full CRUD — list, create, edit, delete
 - **Categories** (`/categories`): full CRUD — list, create, edit, delete, icon picker (20 icons), system categories (lock icon, read-only)
-- **Transactions** (`/transactions`): full CRUD — list with filters (account, type, date range), create, edit, delete, color-coded amounts
+- **Transactions** (`/transactions`): full CRUD — list with filters (account, type, date range), create, edit, delete, color-coded amounts; **bulk checkbox select + bulk delete**; **server-side pagination** (50/page) with real total count
+- **CSV Import** (`/import`): 3-step wizard — upload (CSV/XLSX), column mapping with live sample previews, preview + per-row category picker + bulk insert; Santander preset built-in; auto-categorization via keyword regex rules (Gemini fallback wired, key not set)
 
 ## API routes built
 
@@ -198,17 +201,19 @@ POST /api/categories             — create category
 PATCH /api/categories/[id]       — update category
 DELETE /api/categories/[id]      — delete category (user-owned only)
 
-GET  /api/transactions           — list with filters + pagination (50/page)
-POST /api/transactions           — create transaction
-PATCH /api/transactions/[id]     — update transaction
-DELETE /api/transactions/[id]    — delete transaction
+GET    /api/transactions           — list with filters + pagination (50/page)
+POST   /api/transactions           — create transaction
+PATCH  /api/transactions/[id]      — update transaction
+DELETE /api/transactions/[id]      — delete single transaction
+DELETE /api/transactions           — bulk delete (body: { ids: string[] })
+
+POST   /api/categorize             — Gemini auto-categorize (stub, requires GEMINI_API_KEY)
 ```
 
 ## What's next
 
-- **Phase 3**: CSV Import — Papa Parse client-side, Santander preset, column mapping, preview + confirm
-- **Phase 4**: Dashboard — summary cards (balance, income, expenses) + Recharts charts
-- **Phase 5**: Polish + PWA + tests
+- **Phase 4**: Dashboard — summary cards (balance, income, expenses, net) + Recharts charts (spending by category, balance over time)
+- **Phase 5**: Budgets + polish + PWA + tests
 
 ## Model and effort defaults
 
@@ -227,13 +232,18 @@ When a phase is fully implemented, always run these steps in order before commit
 2. **`/code-review`** at `medium` effort — review the phase diff for obvious bugs before committing
 3. **`/security-review`** — only for phases that add file upload, bulk write, or auth changes (Phase 3 import API, any future auth work)
 4. **Commit** — one conventional commit per phase: `feat: phase N <short description>`
-5. **Update CLAUDE.md** — move the phase from "What's next" to "What's built", update "What's next" for the next phase
+5. **Push** — `git push` immediately after committing. Never leave commits local-only.
+6. **Update CLAUDE.md** — move the phase from "What's next" to "What's built", update "What's next" for the next phase
 
 Do not skip step 1–2 even if the feature looks complete. Always do step 5 after committing.
 
 ## CSV Import (Phase 3 notes)
 
 - Papa Parse runs client-side — raw file never sent to server
-- Santander preset built-in
+- XLSX also supported via the `xlsx` package
+- Santander preset built-in (`src/components/import/presets.ts`)
 - `rawDescription` stores original bank text; `description` is user-editable
-- Categorization: regex rules first → Gemini fallback (v2)
+- Auto-categorization: `src/components/import/categorize.ts` — keyword regex rules run client-side first; Gemini pass is wired in `ImportWizard.tsx` but commented out (enable when `GEMINI_API_KEY` is set)
+- `POST /api/categorize` — Gemini batch endpoint; accepts `{ rows, categories }`, returns `{ suggestions }`
+- Category picker in StepPreview — each row shows a filtered `<select>` (BOTH + matching type); categoryId sent with bulk insert
+- SelectValue in `select.tsx` accepts `children` prop to display custom text when Base UI's internal value display is insufficient
