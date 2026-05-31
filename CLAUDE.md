@@ -210,6 +210,27 @@ DELETE /api/transactions/[id]    — delete transaction
 - **Phase 4**: Dashboard — summary cards (balance, income, expenses) + Recharts charts
 - **Phase 5**: Polish + PWA + tests
 
+## Model and effort defaults
+
+- **Model**: Sonnet 4.6 for all regular feature work
+- Switch to **Opus 4.8** only for complex architectural decisions (e.g., designing a new phase's data pipeline or schema)
+- **Effort**: `medium` by default — sufficient for feature implementation
+- Use `high` for debugging tricky issues or running `/code-review` on a full phase
+- Use `low` for quick fixes and small edits
+- Never default to `high` for routine feature work — it burns tokens without proportional gain
+
+## Phase completion checklist (MANDATORY)
+
+When a phase is fully implemented, always run these steps in order before committing:
+
+1. **`/verify`** — run the app and confirm the golden path works in the browser; spot-check existing features for regressions
+2. **`/code-review`** at `medium` effort — review the phase diff for obvious bugs before committing
+3. **`/security-review`** — only for phases that add file upload, bulk write, or auth changes (Phase 3 import API, any future auth work)
+4. **Commit** — one conventional commit per phase: `feat: phase N <short description>`
+5. **Update CLAUDE.md** — move the phase from "What's next" to "What's built", update "What's next" for the next phase
+
+Do not skip step 1–2 even if the feature looks complete. Always do step 5 after committing.
+
 ## CSV Import (Phase 3 notes)
 
 - Papa Parse runs client-side — raw file never sent to server
