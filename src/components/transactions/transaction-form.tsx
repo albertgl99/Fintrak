@@ -111,10 +111,14 @@ export function TransactionForm({
         <Controller
           control={control}
           name="accountId"
-          render={({ field }) => (
+          render={({ field }) => {
+            const acct = accounts.find((a) => a.id === field.value)
+            return (
             <Select value={field.value} onValueChange={field.onChange}>
               <SelectTrigger className="w-full" aria-invalid={!!errors.accountId}>
-                <SelectValue placeholder="Select account" />
+                <SelectValue placeholder="Select account">
+                  {acct ? `${acct.name} (${acct.currency})` : undefined}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 {accounts.map((a) => (
@@ -124,7 +128,7 @@ export function TransactionForm({
                 ))}
               </SelectContent>
             </Select>
-          )}
+          )}}
         />
         {errors.accountId && (
           <p className="text-xs text-destructive">{errors.accountId.message}</p>
@@ -166,10 +170,14 @@ export function TransactionForm({
             <Controller
               control={control}
               name="categoryId"
-              render={({ field }) => (
+              render={({ field }) => {
+                const cat = filteredCategories.find((c) => c.id === field.value)
+                return (
                 <Select value={field.value ?? ""} onValueChange={(v) => field.onChange(v || undefined)}>
                   <SelectTrigger className="w-full">
-                    <SelectValue placeholder="None" />
+                    <SelectValue placeholder="None">
+                      {cat ? cat.name : undefined}
+                    </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
                     {filteredCategories.map((c) => (
@@ -179,7 +187,8 @@ export function TransactionForm({
                     ))}
                   </SelectContent>
                 </Select>
-              )}
+                )
+              }}
             />
           </div>
         )}
