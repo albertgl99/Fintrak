@@ -14,7 +14,7 @@ export const PRESETS: Preset[] = [
     id: "santander",
     name: "Santander",
     delimiter: ";",
-    dateCol: "Fecha",
+    dateCol: "Fecha operación",
     dateFormat: "dd/MM/yyyy",
     descriptionCol: "Concepto",
     amountCol: "Importe",

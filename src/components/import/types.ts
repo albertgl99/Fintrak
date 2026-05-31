@@ -15,6 +15,7 @@ export type ParsedRow = {
   rawDescription: string
   amount: number
   type: TransactionType
+  categoryId?: string
   selected: boolean
   parseError?: string
 }

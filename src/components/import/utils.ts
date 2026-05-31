@@ -6,11 +6,23 @@ export function parseAmountStr(
   decimalSeparator: "." | ","
 ): { amount: number; type: TransactionType } {
   let cleaned = raw.trim()
+
+  // Accounting parentheses: (1 234,56) → negative
+  const isNegative = /^\(.*\)$/.test(cleaned)
+  if (isNegative) cleaned = "-" + cleaned.slice(1, -1)
+
+  // Normalise minus-like characters (math minus U+2212, en/em dash) to ASCII hyphen
+  cleaned = cleaned.replace(/[−–—]/g, "-")
+
+  // Strip currency symbols, letters, spaces — keep digits, . , - +
+  cleaned = cleaned.replace(/[^\d.,\-+]/g, "")
+
   if (decimalSeparator === ",") {
     cleaned = cleaned.replace(/\./g, "").replace(",", ".")
   } else {
     cleaned = cleaned.replace(/,/g, "")
   }
+
   const value = parseFloat(cleaned)
   if (isNaN(value)) throw new Error(`Cannot parse amount: "${raw}"`)
   if (value === 0) throw new Error(`Amount cannot be zero`)

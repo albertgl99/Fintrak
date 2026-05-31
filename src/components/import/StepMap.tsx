@@ -36,6 +36,10 @@ export function StepMap({ headers, data, preset, onNext, onBack }: Props) {
   })
   const [error, setError] = useState("")
 
+  function sample(col: string) {
+    return data.find((r) => r[col]?.trim())?.[col] ?? ""
+  }
+
   function handleNext() {
     if (!mapping.dateCol || !mapping.descriptionCol || !mapping.amountCol) {
       setError("Please map all required columns")
@@ -44,9 +48,8 @@ export function StepMap({ headers, data, preset, onNext, onBack }: Props) {
     const rows = processRows(data, mapping)
     const validCount = rows.filter((r) => !r.parseError).length
     if (validCount === 0) {
-      setError(
-        "No rows could be parsed. Check your column mapping and date format."
-      )
+      const firstError = rows.find((r) => r.parseError)?.parseError ?? ""
+      setError(`No rows could be parsed. ${firstError}`)
       return
     }
     onNext(rows, mapping)
@@ -55,7 +58,7 @@ export function StepMap({ headers, data, preset, onNext, onBack }: Props) {
   return (
     <div className="space-y-6">
       <p className="text-sm text-muted-foreground">
-        {data.length} rows detected. Map the CSV columns to the required fields.
+        {data.length} rows detected. Map the columns to the required fields.
       </p>
 
       <div className="grid gap-4">
@@ -65,12 +68,18 @@ export function StepMap({ headers, data, preset, onNext, onBack }: Props) {
             onChange={(e) => setMapping((m) => ({ ...m, dateCol: e.target.value }))}
             className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
           >
-            {headers.map((h) => (
-              <option key={h} value={h}>
+            <option value="">— select column —</option>
+            {headers.filter((h) => h).map((h, i) => (
+              <option key={`${h}-${i}`} value={h}>
                 {h}
               </option>
             ))}
           </select>
+          {mapping.dateCol && (
+            <p className="text-xs text-muted-foreground mt-1">
+              Sample: <span className="font-mono">{sample(mapping.dateCol)}</span>
+            </p>
+          )}
         </Field>
 
         <Field label="Date format">
@@ -97,12 +106,18 @@ export function StepMap({ headers, data, preset, onNext, onBack }: Props) {
             }
             className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
           >
-            {headers.map((h) => (
-              <option key={h} value={h}>
+            <option value="">— select column —</option>
+            {headers.filter((h) => h).map((h, i) => (
+              <option key={`${h}-${i}`} value={h}>
                 {h}
               </option>
             ))}
           </select>
+          {mapping.descriptionCol && (
+            <p className="text-xs text-muted-foreground mt-1">
+              Sample: <span className="font-mono">{sample(mapping.descriptionCol)}</span>
+            </p>
+          )}
         </Field>
 
         <Field label="Amount column">
@@ -113,12 +128,18 @@ export function StepMap({ headers, data, preset, onNext, onBack }: Props) {
             }
             className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
           >
-            {headers.map((h) => (
-              <option key={h} value={h}>
+            <option value="">— select column —</option>
+            {headers.filter((h) => h).map((h, i) => (
+              <option key={`${h}-${i}`} value={h}>
                 {h}
               </option>
             ))}
           </select>
+          {mapping.amountCol && (
+            <p className="text-xs text-muted-foreground mt-1">
+              Sample: <span className="font-mono">{sample(mapping.amountCol)}</span>
+            </p>
+          )}
         </Field>
 
         <Field label="Decimal separator">

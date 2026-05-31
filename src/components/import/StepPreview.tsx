@@ -4,14 +4,17 @@ import { useState } from "react"
 import { parseISO, format } from "date-fns"
 import type { ParsedRow } from "./types"
 
+type MinCategory = { id: string; name: string; type: string }
+
 interface Props {
   rows: ParsedRow[]
   accountId: string
+  categories: MinCategory[]
   onBack: () => void
   onDone: () => void
 }
 
-export function StepPreview({ rows: initialRows, accountId, onBack, onDone }: Props) {
+export function StepPreview({ rows: initialRows, accountId, categories, onBack, onDone }: Props) {
   const [rows, setRows] = useState(initialRows)
   const [importing, setImporting] = useState(false)
   const [result, setResult] = useState<{ count: number } | null>(null)
@@ -32,6 +35,10 @@ export function StepPreview({ rows: initialRows, accountId, onBack, onDone }: Pr
     )
   }
 
+  function setCategoryId(id: string, categoryId: string | undefined) {
+    setRows((rs) => rs.map((r) => (r.id === id ? { ...r, categoryId } : r)))
+  }
+
   async function handleImport() {
     if (!selectedRows.length) {
       setError("No rows selected")
@@ -46,6 +53,7 @@ export function StepPreview({ rows: initialRows, accountId, onBack, onDone }: Pr
         body: JSON.stringify({
           transactions: selectedRows.map((r) => ({
             accountId,
+            categoryId: r.categoryId || undefined,
             amount: r.amount,
             type: r.type,
             description: r.description,
@@ -103,15 +111,11 @@ export function StepPreview({ rows: initialRows, accountId, onBack, onDone }: Pr
           <thead className="bg-muted sticky top-0">
             <tr>
               <th className="px-3 py-2 text-left w-8">
-                <input
-                  type="checkbox"
-                  checked={allSelected}
-                  onChange={toggleAll}
-                />
+                <input type="checkbox" checked={allSelected} onChange={toggleAll} />
               </th>
               <th className="px-3 py-2 text-left font-medium">Date</th>
               <th className="px-3 py-2 text-left font-medium">Description</th>
-              <th className="px-3 py-2 text-left font-medium">Type</th>
+              <th className="px-3 py-2 text-left font-medium">Category</th>
               <th className="px-3 py-2 text-right font-medium">Amount</th>
             </tr>
           </thead>
@@ -134,7 +138,7 @@ export function StepPreview({ rows: initialRows, accountId, onBack, onDone }: Pr
                 <td className="px-3 py-2 whitespace-nowrap">
                   {row.date ? format(parseISO(row.date), "dd/MM/yyyy") : "—"}
                 </td>
-                <td className="px-3 py-2 max-w-[220px] truncate">
+                <td className="px-3 py-2 max-w-[180px] truncate">
                   {row.parseError ? (
                     <span className="text-xs text-destructive">{row.parseError}</span>
                   ) : (
@@ -142,13 +146,26 @@ export function StepPreview({ rows: initialRows, accountId, onBack, onDone }: Pr
                   )}
                 </td>
                 <td className="px-3 py-2">
-                  <span
-                    className={`text-xs font-medium ${
-                      row.type === "INCOME" ? "text-emerald-600" : "text-red-500"
-                    }`}
-                  >
-                    {row.type}
-                  </span>
+                  {!row.parseError && (
+                    <select
+                      value={row.categoryId ?? ""}
+                      onChange={(e) =>
+                        setCategoryId(row.id, e.target.value || undefined)
+                      }
+                      className="text-xs rounded border border-input bg-background px-1 py-0.5 max-w-[130px]"
+                    >
+                      <option value="">None</option>
+                      {categories
+                        .filter(
+                          (c) => c.type === "BOTH" || c.type === row.type
+                        )
+                        .map((c) => (
+                          <option key={c.id} value={c.id}>
+                            {c.name}
+                          </option>
+                        ))}
+                    </select>
+                  )}
                 </td>
                 <td
                   className={`px-3 py-2 text-right font-medium tabular-nums ${
