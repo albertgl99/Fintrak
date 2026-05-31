@@ -41,3 +41,15 @@ yarn-error.log*
 next-env.d.ts
 
 /src/generated/prisma
+
+# Claude Code local settings
+.claude/settings.local.json
+.claude/continue.md
+
+# Serena MCP local/cache
+.serena/project.local.yml
+.serena/cache/
+.serena/memories/
+
+# Windows temp directories accidentally created in project root
+UsersAlberAppDataLocalTemp/
