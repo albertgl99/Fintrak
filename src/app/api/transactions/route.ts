@@ -83,3 +83,25 @@ export async function POST(request: NextRequest) {
 
   return Response.json({ ...transaction, amount: transaction.amount.toString() }, { status: 201 })
 }
+
+export async function DELETE(request: NextRequest) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return Response.json({ error: "Unauthorized" }, { status: 401 })
+
+  const body = await request.json()
+  const ids: unknown = body?.ids
+  if (!Array.isArray(ids) || ids.length === 0 || ids.some((id) => typeof id !== "string")) {
+    return Response.json({ error: "Invalid ids" }, { status: 400 })
+  }
+
+  // Only delete transactions that belong to the authenticated user's accounts
+  await prisma.transaction.deleteMany({
+    where: {
+      id: { in: ids as string[] },
+      account: { userId: user.id },
+    },
+  })
+
+  return new Response(null, { status: 204 })
+}

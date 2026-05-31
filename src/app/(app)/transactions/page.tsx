@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { TransactionList } from "@/components/transactions/transaction-list"
 import { TransactionDialog } from "@/components/transactions/transaction-dialog"
 import { TransactionFilters } from "@/components/transactions/transaction-filters"
+import { TransactionPagination } from "@/components/transactions/transaction-pagination"
 
 interface PageProps {
   searchParams: Promise<{
@@ -27,25 +28,27 @@ export default async function TransactionsPage({ searchParams }: PageProps) {
   const page = Math.max(1, Number(filters.page ?? 1))
   const limit = 50
 
-  const [transactions, accounts, categories] = await Promise.all([
+  const where = {
+    account: { userId: user.id },
+    ...(filters.accountId && { accountId: filters.accountId }),
+    ...(filters.type && {
+      type: filters.type as "INCOME" | "EXPENSE" | "TRANSFER",
+    }),
+    ...(filters.dateFrom || filters.dateTo
+      ? {
+          date: {
+            ...(filters.dateFrom && { gte: new Date(filters.dateFrom) }),
+            ...(filters.dateTo && {
+              lte: new Date(filters.dateTo + "T23:59:59"),
+            }),
+          },
+        }
+      : {}),
+  }
+
+  const [transactions, total, accounts, categories] = await Promise.all([
     prisma.transaction.findMany({
-      where: {
-        account: { userId: user.id },
-        ...(filters.accountId && { accountId: filters.accountId }),
-        ...(filters.type && {
-          type: filters.type as "INCOME" | "EXPENSE" | "TRANSFER",
-        }),
-        ...(filters.dateFrom || filters.dateTo
-          ? {
-              date: {
-                ...(filters.dateFrom && { gte: new Date(filters.dateFrom) }),
-                ...(filters.dateTo && {
-                  lte: new Date(filters.dateTo + "T23:59:59"),
-                }),
-              },
-            }
-          : {}),
-      },
+      where,
       include: {
         account: { select: { id: true, name: true, color: true } },
         category: { select: { id: true, name: true, icon: true, color: true } },
@@ -54,6 +57,7 @@ export default async function TransactionsPage({ searchParams }: PageProps) {
       skip: (page - 1) * limit,
       take: limit,
     }),
+    prisma.transaction.count({ where }),
     prisma.account.findMany({
       where: { userId: user.id },
       orderBy: { createdAt: "asc" },
@@ -85,13 +89,20 @@ export default async function TransactionsPage({ searchParams }: PageProps) {
     type: c.type as "INCOME" | "EXPENSE" | "BOTH",
   }))
 
+  const from = total === 0 ? 0 : (page - 1) * limit + 1
+  const to = Math.min(page * limit, total)
+
   return (
     <div className="p-4 md:p-6">
       <div className="flex items-center justify-between mb-4">
         <div>
           <h2 className="text-xl font-semibold">Transactions</h2>
           <p className="text-sm text-muted-foreground">
-            {serialized.length} transaction{serialized.length !== 1 ? "s" : ""}
+            {total === 0
+              ? "No transactions"
+              : total <= limit
+              ? `${total} transaction${total !== 1 ? "s" : ""}`
+              : `Showing ${from}–${to} of ${total}`}
           </p>
         </div>
         <TransactionDialog
@@ -117,11 +128,16 @@ export default async function TransactionsPage({ searchParams }: PageProps) {
           Create an account first before adding transactions.
         </p>
       ) : (
-        <TransactionList
-          transactions={serialized}
-          accounts={accountsForForm}
-          categories={categoriesForForm}
-        />
+        <>
+          <TransactionList
+            transactions={serialized}
+            accounts={accountsForForm}
+            categories={categoriesForForm}
+          />
+          <Suspense>
+            <TransactionPagination page={page} total={total} limit={limit} />
+          </Suspense>
+        </>
       )}
     </div>
   )
