@@ -22,9 +22,9 @@ const TYPE_LABELS = { INCOME: "Income", EXPENSE: "Expense", BOTH: "Both" }
 export function CategoryList({ categories }: { categories: Category[] }) {
   const [mounted, setMounted] = useState(false)
   const [isPending, startTransition] = useTransition()
+  const router = useRouter()
   useEffect(() => setMounted(true), [])
   if (!mounted) return null
-  const router = useRouter()
 
   const handleDelete = (id: string) => {
     if (!confirm("Delete this category?")) return

@@ -1,7 +1,7 @@
 "use client"
 
 import { useRouter, usePathname, useSearchParams } from "next/navigation"
-import { useCallback } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { Input } from "@/components/ui/input"
 import {
   Select,
@@ -22,6 +22,7 @@ interface TransactionFiltersProps {
 }
 
 export function TransactionFilters({ accounts }: TransactionFiltersProps) {
+  const [mounted, setMounted] = useState(false)
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
@@ -45,6 +46,9 @@ export function TransactionFilters({ accounts }: TransactionFiltersProps) {
   }
 
   const hasFilters = searchParams.size > 0
+
+  useEffect(() => setMounted(true), [])
+  if (!mounted) return null
 
   return (
     <div className="flex flex-wrap gap-2 items-center">

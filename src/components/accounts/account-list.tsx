@@ -17,9 +17,9 @@ interface Account {
 export function AccountList({ accounts }: { accounts: Account[] }) {
   const [mounted, setMounted] = useState(false)
   const [isPending, startTransition] = useTransition()
+  const router = useRouter()
   useEffect(() => setMounted(true), [])
   if (!mounted) return null
-  const router = useRouter()
 
   const handleDelete = (id: string) => {
     if (!confirm("Delete this account? All its transactions will be deleted too.")) return
