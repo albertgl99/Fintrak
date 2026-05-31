@@ -1,36 +1,95 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Fintrak
 
-## Getting Started
+Personal finance dashboard — import bank CSVs, manage transactions, track spending by category.
 
-First, run the development server:
+## Features
+
+- **Auth** — Sign up / sign in via Supabase
+- **Accounts** — Multiple bank accounts with currency and color
+- **Categories** — Custom categories with icons, colors, and type (income / expense / both)
+- **Transactions** — Manual entry with filtering by account, type, and date range
+- **CSV Import** — Import transactions from Spanish bank CSVs (Santander preset) *(in progress)*
+- **Dashboard** — Spending overview with charts *(planned)*
+
+## Tech stack
+
+| Layer | Tech |
+|---|---|
+| Framework | Next.js 16 (App Router, Turbopack) |
+| Language | TypeScript |
+| Styling | Tailwind CSS v4 + shadcn/ui (base-nova) |
+| Auth + DB | Supabase (Auth + PostgreSQL) |
+| ORM | Prisma 7 |
+| Server state | TanStack Query v5 |
+| Forms | React Hook Form + Zod v4 |
+| Charts | Recharts |
+| CSV parsing | Papa Parse |
+
+## Getting started
+
+### 1. Install dependencies
+
+```bash
+npm install
+```
+
+### 2. Set up environment variables
+
+Create `.env.local`:
+
+```env
+NEXT_PUBLIC_SUPABASE_URL=https://<your-project>.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=<anon-key>
+SUPABASE_SERVICE_ROLE_KEY=<service-role-key>
+DATABASE_URL=postgresql://...?pgbouncer=true   # pooled (port 6543)
+DIRECT_URL=postgresql://...                     # direct (port 5432)
+```
+
+### 3. Run database migrations
+
+```bash
+npx prisma migrate dev --name init
+```
+
+### 4. Start the dev server
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Project structure
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```
+src/
+├── app/
+│   ├── (auth)/          # /login, /register
+│   ├── (app)/           # Protected routes with sidebar
+│   │   ├── dashboard/
+│   │   ├── transactions/
+│   │   ├── accounts/
+│   │   ├── categories/
+│   │   ├── budgets/
+│   │   ├── import/
+│   │   └── settings/
+│   ├── api/             # Route Handlers
+│   └── actions/         # Server Actions
+├── components/
+│   ├── ui/              # shadcn/ui primitives
+│   ├── layout/          # Sidebar, BottomNav
+│   ├── accounts/
+│   ├── categories/
+│   └── transactions/
+└── lib/
+    ├── prisma.ts
+    ├── supabase/
+    └── validations/
+```
 
-## Learn More
+## Database schema
 
-To learn more about Next.js, take a look at the following resources:
+`User` → `Account` → `Transaction` → `Category`
+`User` → `Budget` → `Category`
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Run `npx prisma studio` to browse the database.
