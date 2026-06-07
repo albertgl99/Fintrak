@@ -178,7 +178,7 @@ DIRECT_URL            # direct (port 5432) — migrations only
 GEMINI_API_KEY        # v2 feature, empty for now
 ```
 
-## What's built (Phase 3 complete)
+## What's built (Phase 4 complete)
 
 - **Auth**: `/login`, `/register`, logout — Supabase + Server Actions + React Hook Form
 - **Proxy** (`src/proxy.ts`): auth redirects, `/` → `/dashboard` for authenticated users
@@ -187,6 +187,7 @@ GEMINI_API_KEY        # v2 feature, empty for now
 - **Categories** (`/categories`): full CRUD — list, create, edit, delete, icon picker (20 icons), system categories (lock icon, read-only)
 - **Transactions** (`/transactions`): full CRUD — list with filters (account, type, date range), create, edit, delete, color-coded amounts; **bulk checkbox select + bulk delete**; **server-side pagination** (50/page) with real total count
 - **CSV Import** (`/import`): 3-step wizard — upload (CSV/XLSX), column mapping with live sample previews, preview + per-row category picker + bulk insert; Santander preset built-in; auto-categorization via keyword regex rules (Gemini fallback wired, key not set)
+- **Dashboard** (`/dashboard`): summary cards (total balance, income, expenses, net) with % change vs previous month; spending by category donut chart (Recharts, category colors from DB); net flow line chart; month navigator (prev/next)
 
 ## API routes built
 
@@ -212,8 +213,8 @@ POST   /api/categorize             — Gemini auto-categorize (stub, requires GE
 
 ## What's next
 
-- **Phase 4**: Dashboard — summary cards (balance, income, expenses, net) + Recharts charts (spending by category, balance over time)
-- **Phase 5**: Budgets + polish + PWA + tests
+- **Phase 5**: Budgets — budget creation per category/period, progress bars vs actual spend, alerts
+- **Phase 6**: Polish + PWA + tests
 
 ## Model and effort defaults
 
