@@ -89,7 +89,7 @@ prisma.config.ts     # Prisma 7 config — uses DIRECT_URL for migrations
 - All DB queries go through Prisma — never raw SQL unless unavoidable
 - Supabase Auth user ID = Prisma User.id (UUID, no auto-generate)
 - **All code, UI text, comments, and docs must be in English**
-- Git: single `main` branch, one commit per completed feature, conventional commits (`feat:`, `fix:`, `chore:`)
+- Git: single `main` branch, **2 commits per phase** — one for the backend (validation schema + API routes) and one for the frontend (components + page + CLAUDE.md update); conventional commits (`feat:`, `fix:`, `chore:`)
 
 ## Next.js 16 breaking changes
 
@@ -238,7 +238,7 @@ When a phase is fully implemented, always run these steps in order before commit
 1. **`/verify`** — run the app and confirm the golden path works in the browser; spot-check existing features for regressions
 2. **`/code-review`** at `medium` effort — review the phase diff for obvious bugs before committing
 3. **`/security-review`** — only for phases that add file upload, bulk write, or auth changes (Phase 3 import API, any future auth work)
-4. **Commit** — one conventional commit per phase: `feat: phase N <short description>`
+4. **Commit** — 2 commits per phase: `feat: phase N <feature> — API routes and validation` then `feat: phase N <feature> — UI components and page`
 5. **Push** — `git push` immediately after committing. Never leave commits local-only.
 6. **Update CLAUDE.md** — move the phase from "What's next" to "What's built", update "What's next" for the next phase
 
