@@ -1,27 +1,20 @@
-import { Plus } from "lucide-react"
-import { redirect } from "next/navigation"
+import { NextRequest } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { prisma } from "@/lib/prisma"
+import { budgetSchema } from "@/lib/validations/budget"
 import { BudgetPeriod } from "@/generated/prisma/enums"
 import { getPeriodRange } from "@/lib/budget-period"
-import { Button } from "@/components/ui/button"
-import { BudgetList } from "@/components/budgets/budget-list"
-import { BudgetDialog } from "@/components/budgets/budget-dialog"
 
-export default async function BudgetsPage() {
+export async function GET() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect("/login")
+  if (!user) return Response.json({ error: "Unauthorized" }, { status: 401 })
 
-  const [budgets, categories, accounts] = await Promise.all([
+  const [budgets, accounts] = await Promise.all([
     prisma.budget.findMany({
       where: { userId: user.id },
       include: { category: { select: { id: true, name: true, icon: true, color: true } } },
       orderBy: { createdAt: "asc" },
-    }),
-    prisma.category.findMany({
-      where: { OR: [{ userId: user.id }, { userId: null }] },
-      orderBy: [{ isDefault: "desc" }, { name: "asc" }],
     }),
     prisma.account.findMany({ where: { userId: user.id }, select: { id: true } }),
   ])
@@ -55,34 +48,34 @@ export default async function BudgetsPage() {
     })
   )
 
-  const budgetsWithSpent = budgets.map(b => ({
-    id: b.id,
-    categoryId: b.categoryId,
+  const result = budgets.map(b => ({
+    ...b,
     amount: Number(b.amount),
-    period: b.period,
-    category: b.category,
     spent: spentMap[b.period]?.[b.categoryId] ?? 0,
   }))
 
-  return (
-    <div className="p-4 md:p-6 max-w-2xl">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h2 className="text-xl font-semibold">Budgets</h2>
-          <p className="text-sm text-muted-foreground">Track your spending limits</p>
-        </div>
-        <BudgetDialog
-          categories={categories}
-          trigger={
-            <Button size="sm">
-              <Plus className="size-4 mr-1.5" />
-              Add budget
-            </Button>
-          }
-        />
-      </div>
+  return Response.json(result)
+}
 
-      <BudgetList budgets={budgetsWithSpent} categories={categories} />
-    </div>
-  )
+export async function POST(request: NextRequest) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return Response.json({ error: "Unauthorized" }, { status: 401 })
+
+  const body = await request.json()
+  const validated = budgetSchema.safeParse(body)
+  if (!validated.success) return Response.json({ error: "Invalid data" }, { status: 400 })
+
+  try {
+    const budget = await prisma.budget.create({
+      data: { userId: user.id, ...validated.data },
+      include: { category: { select: { id: true, name: true, icon: true, color: true } } },
+    })
+    return Response.json({ ...budget, amount: Number(budget.amount), spent: 0 }, { status: 201 })
+  } catch (err) {
+    if ((err as { code?: string }).code === "P2002") {
+      return Response.json({ error: "Budget already exists for this category and period" }, { status: 409 })
+    }
+    return Response.json({ error: "Failed to create budget" }, { status: 500 })
+  }
 }

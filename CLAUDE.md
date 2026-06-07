@@ -178,7 +178,7 @@ DIRECT_URL            # direct (port 5432) — migrations only
 GEMINI_API_KEY        # v2 feature, empty for now
 ```
 
-## What's built (Phase 4 complete)
+## What's built (Phase 5 complete)
 
 - **Auth**: `/login`, `/register`, logout — Supabase + Server Actions + React Hook Form
 - **Proxy** (`src/proxy.ts`): auth redirects, `/` → `/dashboard` for authenticated users
@@ -188,6 +188,7 @@ GEMINI_API_KEY        # v2 feature, empty for now
 - **Transactions** (`/transactions`): full CRUD — list with filters (account, type, date range), create, edit, delete, color-coded amounts; **bulk checkbox select + bulk delete**; **server-side pagination** (50/page) with real total count
 - **CSV Import** (`/import`): 3-step wizard — upload (CSV/XLSX), column mapping with live sample previews, preview + per-row category picker + bulk insert; Santander preset built-in; auto-categorization via keyword regex rules (Gemini fallback wired, key not set)
 - **Dashboard** (`/dashboard`): summary cards (total balance, income, expenses, net) with % change vs previous month; spending by category donut chart (Recharts, category colors from DB); net flow line chart; month navigator (prev/next)
+- **Budgets** (`/budgets`): full CRUD — create budget per category/period (weekly/monthly/yearly), progress bars with actual spend, amber warning at ≥80%, red over-budget indicator; duplicate-budget error surfaced in dialog; shared `getPeriodRange` util + `BudgetPeriod` from Prisma enums
 
 ## API routes built
 
@@ -209,12 +210,17 @@ DELETE /api/transactions/[id]      — delete single transaction
 DELETE /api/transactions           — bulk delete (body: { ids: string[] })
 
 POST   /api/categorize             — Gemini auto-categorize (stub, requires GEMINI_API_KEY)
+
+GET    /api/budgets                — list budgets with actual spend for current period
+POST   /api/budgets                — create budget (409 on duplicate category+period)
+PATCH  /api/budgets/[id]           — update budget amount/period
+DELETE /api/budgets/[id]           — delete budget
 ```
 
 ## What's next
 
-- **Phase 5**: Budgets — budget creation per category/period, progress bars vs actual spend, alerts
-- **Phase 6**: Polish + PWA + tests
+- **Phase 6**: Dashboard polish — latest transactions widget (5-10 most recent), top expenses widget (3-5 biggest), budget alert widgets (>80% spent); all wired after Phase 5 so budgets are available
+- **Phase 7**: Polish + PWA + tests
 
 ## Model and effort defaults
 
